@@ -1,0 +1,8 @@
+name: SpeedrunPlugin
+version: 1.0
+main: de.legoshi.speedrunplugin.SpeedrunPlugin
+
+commands:
+  topmap:
+  mapnamechange:
+  delete:
