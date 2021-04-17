@@ -1,14 +1,14 @@
 package de.legoshi.speedrunplugin;
 
-import de.legoshi.speedrunplugin.commands.MapCommand;
-import de.legoshi.speedrunplugin.commands.MapDelete;
-import de.legoshi.speedrunplugin.commands.MapTop;
+import de.legoshi.speedrunplugin.commands.*;
 import de.legoshi.speedrunplugin.db.AsyncMySQL;
 import de.legoshi.speedrunplugin.db.DBManager;
 import de.legoshi.speedrunplugin.listener.*;
 import de.legoshi.speedrunplugin.player.PlayerManager;
 import de.legoshi.speedrunplugin.utils.FW;
+import de.legoshi.speedrunplugin.utils.Message;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -21,6 +21,10 @@ public final class SpeedrunPlugin extends JavaPlugin {
     public DBManager dbManager;
     public AsyncMySQL mySQL;
 
+    public final Material cp = Material.IRON_PLATE;
+    public final Material goal = Material.WOOD_PLATE;
+    public String worldname;
+
     @Override
     public void onEnable() {
 
@@ -30,6 +34,9 @@ public final class SpeedrunPlugin extends JavaPlugin {
 
         mySQL = dbManager.initializeTables();
         initFW();
+        worldFile();
+
+        Message.loadMessagesIn();
 
         ListenerRegistration();
         CommandRegistration();
@@ -57,6 +64,8 @@ public final class SpeedrunPlugin extends JavaPlugin {
         getCommand("mapnamechange").setExecutor(new MapCommand(mySQL));
         getCommand("topmap").setExecutor(new MapTop(mySQL));
         getCommand("delete").setExecutor(new MapDelete(mySQL, playerManager));
+        getCommand("reloadm").setExecutor(new ReloadMessage());
+        getCommand("reloadw").setExecutor(new ReloadWorld());
 
     }
 
@@ -73,6 +82,17 @@ public final class SpeedrunPlugin extends JavaPlugin {
             config.save();
             Bukkit.getConsoleSender().sendMessage("Created FW data!");
         }
+    }
+
+    public void worldFile() {
+        FW config = new FW("./plugins/configuration/", "world.yaml");
+        if(!config.exist()) {
+            config.setValue("world", "world");
+            this.worldname = "world";
+            config.save();
+            return;
+        }
+        this.worldname = config.getString("world");
     }
 
     public static SpeedrunPlugin getInstance() {

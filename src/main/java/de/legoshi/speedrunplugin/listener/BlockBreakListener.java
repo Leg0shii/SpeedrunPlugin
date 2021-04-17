@@ -1,5 +1,6 @@
 package de.legoshi.speedrunplugin.listener;
 
+import de.legoshi.speedrunplugin.SpeedrunPlugin;
 import de.legoshi.speedrunplugin.db.AsyncMySQL;
 import de.legoshi.speedrunplugin.player.PlayerManager;
 import de.legoshi.speedrunplugin.utils.Message;
@@ -27,7 +28,7 @@ public class BlockBreakListener implements Listener {
     @EventHandler
     public void onBreak(BlockBreakEvent event) {
 
-        if(!event.getBlock().getType().equals(Material.GOLD_PLATE)) return;
+        if(!event.getBlock().getType().equals(SpeedrunPlugin.getInstance().goal)) return;
         if(!event.getPlayer().isOp()) {
             event.setCancelled(true);
             return;
@@ -36,8 +37,6 @@ public class BlockBreakListener implements Listener {
         Player player = event.getPlayer();
         Location cp = event.getBlock().getLocation();
         playerManager.getHashMap().get(player).setOnDelete(cp);
-
-        event.setCancelled(true);
 
         mySQL.query("SELECT * FROM maps WHERE x = " + cp.getX() + " AND y = " + cp.getY() + " AND z = " + cp.getZ() + " AND world = '" + cp.getWorld().getName() + "';", new Consumer<ResultSet>() {
             @Override
@@ -49,6 +48,7 @@ public class BlockBreakListener implements Listener {
                         player.sendMessage(Message.MSG_MAP_DELETE.getMessage()
                         .replace("{mapname}", mapname)
                         .replace("{id}", "" + id));
+                        event.setCancelled(true);
                     } else {
                         player.sendMessage(Message.ERR_MAP_DOESNT_EXIST.getErrMessage());
                     }

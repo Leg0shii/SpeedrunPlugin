@@ -6,3 +6,5 @@ commands:
   topmap:
   mapnamechange:
   delete:
+  reloadm:
+  reloadw:

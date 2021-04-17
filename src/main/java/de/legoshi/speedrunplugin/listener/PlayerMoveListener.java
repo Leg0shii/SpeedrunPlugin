@@ -38,11 +38,11 @@ public class PlayerMoveListener implements Listener {
 
         if(!event.getAction().equals(Action.PHYSICAL)) return;
         PlayerObject playerObject = playerManager.getHashMap().get(event.getPlayer());
-        if(event.getClickedBlock().getType().equals(Material.IRON_PLATE)) {
+        if(event.getClickedBlock().getType().equals(SpeedrunPlugin.getInstance().cp)) {
             startTimer(playerObject);
         }
 
-        if(event.getClickedBlock().getType().equals(Material.GOLD_PLATE)) {
+        if(event.getClickedBlock().getType().equals(SpeedrunPlugin.getInstance().goal)) {
             if(!playerObject.isInCourse()) return;
             playerObject.setInCourse(false);
             final long timeMS = playerObject.getCourseTime();
@@ -96,6 +96,11 @@ public class PlayerMoveListener implements Listener {
                                                 .replace("{time}", "" + time));
                                             return;
                                         }
+                                    } else {
+                                        mySQL.update("INSERT INTO playertimes (mapid, playerUUID, playertime) VALUES (" + mapid + ",'" + uuid + "'," + timeMS + ");");
+                                        player.sendMessage(Message.MSG_TIME_IMPROVEMENT.getMessage()
+                                            .replace("{mapname}", mapname)
+                                            .replace("{time}", "" + time));
                                     }
                                 } while (resultSet.next());
                             } else {
@@ -120,10 +125,9 @@ public class PlayerMoveListener implements Listener {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    hm.send(playerObject.getPlayer(), "" + ChatColor.DARK_GRAY
-                        + ChatColor.BOLD + "Time: " + ChatColor.GRAY
-                        + String.format(Locale.US, "%.2f", (playerObject.getCourseTime()/1000.0)) + "s");
-                    if (!playerObject.isInCourse()) {
+                    hm.send(playerObject.getPlayer(), Message.TIMER.getRawMessage()
+                        .replace("{time}", String.format(Locale.US, "%.2f", (playerObject.getCourseTime()/1000.0))));
+                    if (!playerObject.isInCourse() || !playerObject.getPlayer().getLocation().getWorld().getName().equals(SpeedrunPlugin.getInstance().worldname)) {
                         cancel();
                     }
                     playerObject.setCourseTime(playerObject.getCourseTime() + 50);
